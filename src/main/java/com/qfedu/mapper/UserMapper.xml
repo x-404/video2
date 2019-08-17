@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qfedu.dao.UserDao">
+
+    <insert id="add" parameterType="user">
+        insert into project.user(email, phoneNum, password, code, nickName, sex, birthday, address, imgUrl, createTime) values (#{email},#{phoneNum},#{password},#{code},#{nickName},#{sex},#{birthday},#{address},#{imgUrl},#{createTime})
+    </insert>
+    
+<!--    <delete id="deleteById" parameterType="int">-->
+<!--        delete from project.user where id=#{id}-->
+<!--    </delete>-->
+    
+    <select id="findById" parameterType="string" resultType="user">
+        select * from project.user where email=#{email};
+    </select>
+
+<!--    <update id="update" parameterType="user">-->
+<!--        update project.user-->
+<!--        <set>-->
+<!--            <if test="email != null">-->
+<!--                email=#{email},-->
+<!--            </if>-->
+<!--            <if test="phoneNum != null">-->
+<!--                phoneNum=#{phoneNum},-->
+<!--            </if>-->
+<!--            <if test="password != null">-->
+<!--                password=#{password},-->
+<!--            </if>-->
+<!--            <if test="code != null">-->
+<!--                code=#{code},-->
+<!--            </if>-->
+<!--            <if test="nickName != null">-->
+<!--                nickName=#{nickName},-->
+<!--            </if>-->
+<!--            <if test="sex != null">-->
+<!--                sex=#{sex},-->
+<!--            </if>-->
+<!--            <if test="birthday != null">-->
+<!--                birthday=#{birthday},-->
+<!--            </if>-->
+<!--            <if test="address != null">-->
+<!--                address=#{address},-->
+<!--            </if>-->
+<!--            <if test="imgUrl != null">-->
+<!--                imgUrl=#{imgUrl},-->
+<!--            </if>-->
+<!--            <if test="createTime != null">-->
+<!--                createTime=#{createTime},-->
+<!--            </if>-->
+<!--        </set>-->
+<!--        where id=#{id};-->
+<!--    </update>-->
+
+</mapper>

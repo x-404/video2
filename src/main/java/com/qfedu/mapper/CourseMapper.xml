@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.qfedu.dao.CourseDao">
+    <select id="findAllCourse" parameterType="course" resultType="course">
+        select * from project.course
+    </select>
+
+    <select id="findCourse" resultType="course">
+        select * from project.course
+    </select>
+
+    <insert id="addCourse" parameterType="course">
+        insert into project.course(courseTitle, courseDesc, subjectId) values (#{courseTitle}, #{courseDesc}, #{subjectId})
+    </insert>
+
+    <delete id="deleteCourse" parameterType="int">
+        delete from project.course where  id=#{id}
+    </delete>
+
+    <update id="updateCourse" parameterType="course">
+        update project.course set courseTitle=#{courseTitle}, courseDesc=#{courseDesc}, subjectId=#{subjectId} where id=#{id}
+    </update>
+
+    <select id="selectByCourseId" parameterType="int" resultType="course">
+        select * from project.course where id=#{id}
+    </select>
+
+</mapper>

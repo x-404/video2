@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.all.js"></script>
+		<script type="text/javascript" src="js/jquery-1.12.2.min.js"></script>
+		<script type="text/javascript" src="layui/layui.js"></script>
+	</head>
+	<body>
+
+		<div>
+			<div class="layui-logo">视频管理</div>
+			<div>
+				<div class="layui-row" style="margin-top: 50px;">
+					<div class="layui-col-xs5 layui-input-inline" style="margin-left: 30px">
+						<button type="button" class="layui-btn layui-btn-normal" onclick="add()">添加</button>
+						<button type="button" class="layui-btn" onclick="deleteAll()">批量删除<span id="span_deleteAll" class="layui-badge layui-bg-gray">0</span></button>
+					</div>
+					<div class="layui-col-xs7 layui-input-inline searchDiv">
+						<div style="margin-left: 60px;">
+							<form class="layui-form" onsubmit="return false">
+								<div class="layui-inline">
+									<div class="layui-input-inline">
+										<input type="tel" id="lay-title" name="title" lay-verify="title" placeholder="标题" class="layui-input">
+									</div>
+								</div>
+								<div class="layui-inline">
+									<div class="layui-input-inline">
+										<select id="select_teacher" name="speakerId" lay-filter="test">
+											<option value="">----请选择老师----</option>
+										</select>
+									</div>
+								</div>
+								<div class="layui-inline">
+									<div class="layui-input-inline">
+										<select id="select_course" name="courseId" lay-filter="test">
+											<option value="">----请选择课程----</option>
+										</select>
+									</div>
+								</div>
+								<div class="layui-inline">
+									<button class="layui-btn" lay-submit="" data-type="reload" lay-filter="demo1">查询</button>
+								
+								</div>
+							
+							</form>
+						</div>
+						
+					</div>
+				</div>
+				<div>
+					<table class="layui-hide" id="demo" lay-filter="test"></table>
+				</div>
+			</div>
+		</div>
+
+		<script type="text/html" id="barDemo">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">更新</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		<script>
+			layui.use(['form', 'laydate', 'laypage', 'layer', 'table', 'element'], function() {
+				var form = layui.form,
+					laydate = layui.laydate //日期
+					,
+					laypage = layui.laypage //分页
+					,
+					layer = layui.layer //弹层
+					,
+					table = layui.table //表格
+					,
+					element = layui.element //元素操作
+
+
+				//监听表格复选框选择
+				table.on('checkbox(test)', function(obj){
+					/*console.log(obj);
+                    console.log(obj.count);*/
+					var checkStatus = table.checkStatus('demo')
+							,data = checkStatus.data;
+					$("#span_deleteAll").html(data.length);
+				});
+
+
+				//执行一个 table 实例
+				table.render({
+					elem: '#demo',
+					id: "demo"
+						//,height: 500
+						,
+					url: 'video/findVideo.do' //数据接口
+						,
+					title: '用户表',
+					page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem）
+						layout: ['limit', 'count', 'prev', 'page', 'next', 'skip'] //自定义分页布局
+							//,curr: 5 //设定初始在第 5 页
+							//,groups: 1 //只显示 1 个连续页码
+						,first: false //不显示首页
+						,last: false //不显示尾页
+						,limit: 20
+						,limits: [5, 10, 20]
+
+					} //开启分页
+					,
+					cols: [[ //表头
+							{type:'checkbox', fixed: true}
+							, {field: 'id', title: '序号', width: 80, sort: true}
+							, {field: 'title', title: '名称', width: 223, sort: true}
+							, {field: 'detail', title: '介绍', width: 350 }
+							, {field: 'speakerName', title: '讲师', width: 100, sort: true}
+							, {field: 'time', title: '时长', width: 100, sort: true}
+							, {field: 'playNum', title: '播放次数', width: 110, sort: true}
+							, {fixed: 'right', width: 130, align: 'center', toolbar: '#barDemo'}
+					]]
+				});
+
+				//监听行工具事件
+				table.on('tool(test)', function(obj){ //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+					var data = obj.data //获得当前行数据
+							,layEvent = obj.event; //获得 lay-event 对应的值
+					if(layEvent === 'del'){
+						layer.confirm('真的删除【'+ data.title +'】么', function(index){
+							obj.del(); //删除对应行（tr）的DOM结构
+							layer.close(index);
+							//向服务端发送删除指令
+							$.ajax({
+								type:"get",
+								url:"video/deleteByVid.do?id=" + data.id,
+								dataType:"json",
+								success:function(data){
+									if(data.code == 1){
+										table.reload('demo');
+										layer.msg(data.info)
+										$("#span_deleteAll").html(0)
+									}else{
+										alert(data.data);
+									}
+								}
+							})
+						});
+					} else if(layEvent === 'edit'){
+						//layer.msg('编辑操作');
+						layer.open({
+							type: 2 //此处以iframe举例
+							, title: '修改员工'
+							, area: ['600px', '500px']
+							, content: 'updateVideo.html?id=' + data.id
+						})
+					}
+				});
+
+				var active = {
+					reload: function() {
+						//执行重载
+						table.reload('demo', {
+							// url:'video/findVideo.do',
+							page: {
+								curr: 1 //重新从第 1 页开始
+							},
+							where: { // 额外需要提交的参数
+								title: $("#lay-title").val(),
+								speakerName: $("#select_teacher").val(),
+								courseTitle: $("#select_course").val()
+							}
+						});
+					}
+				};
+
+				$('.searchDiv .layui-btn').on('click', function(){
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+			})
+
+
+			layui.use(['form','layer'],function () {
+				var form = layui.form,
+						layer = layui.layer;
+				$(function searchTeacher() {
+					$.ajax({
+
+						type: "get",
+						url: "speakerList.do",
+						dataType: "json",
+						success: function (data) {
+							if (data.code == 1) {
+								var infos = data.info;
+								$(infos).each(function () {
+									var html = '<option value="' + this.speakerName + '"> ' + this.speakerName + ' </option>';
+									$("#select_teacher").append($(html));
+								});
+								layui.form.render("select");
+							}
+						}
+					});
+				})
+
+				layui.use(['form', 'layer'], function () {
+					var form = layui.form,
+							layer = layui.layer;
+					$(function searchTeacher() {
+						$.ajax({
+							type: "get",
+							url: "courseList.do",
+							dataType: "json",
+							success: function (data) {
+								if (data.code == 1) {
+									var infos = data.info;
+									$(infos).each(function () {
+										var html = '<option value="' + this.courseTitle + '">' + this.courseTitle + '</option>';
+										$("#select_course").append($(html));
+									});
+									layui.form.render("select");
+								}
+							}
+						})
+					})
+				})
+			})
+
+		</script>
+
+
+
+		<script type="text/javascript">
+			function add(){
+				layer.open({
+					type: 2 //此处以iframe举例
+					, title: '添加视频'
+					, area: ['600px', '500px']
+					, content: 'addVideo.html'
+				})
+			}
+
+		</script>
+
+    <script type="text/javascript">
+        function deleteAll() {
+            var id = new Array();
+            layui.use(['table'],function () {
+                var table = layui.table;
+                var checkStatus = table.checkStatus('demo');
+                var data = checkStatus.data;
+                if(data.length==0){
+                    layer.msg("请至少选择一条要删除的记录");
+                    return;
+                }
+                for(var i = 0; i < data.length; i++){
+                    if(i != (data.length - 1)){
+                        id += data[i].id+",";
+                    }else{
+                        id += data[i].id;
+                    }
+                }
+                layer.confirm('确定批量删除吗？',function (index) {
+                    layer.close(index);
+                    $.ajax({
+                        type:"POST",
+                        url:"video/deleteVideo.do",
+                        traditional:true,
+                        data:{'id':id},
+                        dataType:"json",
+                        success:function (data) {
+                            if (data.code == 1) {
+                                layer.msg(data.info);
+                                var t = layui.table;
+                                t.reload('demo');
+                                $("#span_deleteAll").html(0)
+                            }
+                        }
+                    });
+                });
+
+            });
+        }
+    </script>
+
+
+	</body>
+</html>

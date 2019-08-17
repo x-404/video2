@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="layui/css/layui.css" />
+		<script type="text/javascript" src="js/jquery-1.12.2.min.js"></script>
+		<script type="text/javascript" src="layui/layui.js"></script>
+	</head>
+	<body>
+	<div class="layui-container" style="margin-top: 30px;">
+		<form class="layui-form" action="" lay-filter="example">
+			<div class="layui-form-item">
+				<label class="layui-form-label">名称</label>
+				<div class="layui-input-block">
+					<input type="text" name="speakerName" lay-verify="title" placeholder="视频名称" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">职位</label>
+				<div class="layui-input-block">
+					<input type="text" name="speakerJob" lay-verify="title" placeholder="精确到毫秒(正整数)" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">头像地址</label>
+				<div class="layui-input-block">
+					<input type="text" name="headImgUrl" lay-verify="title" placeholder="具体的url" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<label class="layui-form-label">简介</label>
+				<div class="layui-input-block">
+					<input type="text" name="speakerDesc" lay-verify="title" placeholder="具体的url" class="layui-input">
+				</div>
+			</div>
+			<div class="layui-form-item">
+				<div class="layui-input-block">
+					<button class="layui-btn" lay-submit="" lay-filter="demo1">立即提交</button>
+					<button type="reset" class="layui-btn layui-btn-primary">重置</button>
+				</div>
+			</div>
+		</form>
+	</div>
+
+	<script>
+
+		layui.use(['layer', 'form'], function(){
+			var layer = layui.layer
+					,form = layui.form;
+
+
+			$.ajax({
+				type:"get",
+				url:"querySpeakerId.do" + window.location.search, // el表达式,param el中内置对象，存储路径中提交的参数
+				dataType:"json",
+				success:function(data){
+					if(data.code == 1){
+						//表单初始赋值
+						form.val('example', data.info);
+					}else{
+						alert(data.info);
+					}
+				}
+			})
+
+			form.verify({
+				title: function(value) {
+					if (value.length < 1) {
+						return '名称至少得1个字符啊';
+					}
+				},
+				content: function(value) {
+					layedit.sync(editIndex);
+				}
+			});
+
+			//监听提交
+			form.on('submit(demo1)', function(data){
+				$.ajax({
+					type:"post",
+					url:"updateSpeaker.do" + window.location.search,
+					data:data.field,
+					dataType:"json",
+					success:function(data){  //{code:1,info:....}
+						if(data.code == 1){
+							var t = parent.layui.table;
+							t.reload('demo');// 重新加载页面,demo 表示父窗体table标签的id值
+							var index = parent.layer.getFrameIndex(window.name); //先得到当前iframe层的索引
+							parent.layer.close(index); //再执行关闭
+						}else{
+							alert(data.info);
+						}
+					}
+				})
+
+
+				// 阻止默认的提交
+				return false;
+			});
+
+			//layer.msg('Hello World');
+		});
+
+
+	</script>
+<script type="text/javascript">
+	$("form").submit(function () {
+		$.ajax({
+			type:"post",
+			url:"updateSpeaker.do" + window.location.search,
+			data:$("form").serialize(),
+			dataType:"json",
+			success:function (data) {
+				if (data.code == 1) {
+					window.location.href = "speaker_list.html";
+				} else {
+					alert(data.info);
+				}
+			}
+		})
+	})
+</script>
+
+	</body>
+
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="layui/css/layui.css" />
+		<script type="text/javascript" src="layui/layui.all.js"></script>
+		<script type="text/javascript" src="js/jquery-1.12.2.min.js"></script>
+		<script type="text/javascript" src="layui/layui.js"></script>
+	</head>
+	<body>
+		<div>
+			<div>
+				<div class="layui-row" style="margin-top: 50px;">
+					<div class="layui-col-xs5 layui-input-inline">
+						<button type="button" class="layui-btn layui-btn-normal" style="margin-left: 30px" onclick="add()">添加</button>
+					</div>
+				</div>
+				<div class="layui-col-xs7 layui-input-inline">
+					<div style="margin-left: 60px;">
+						<form class="layui-form">
+
+						</form>
+					</div>
+
+				</div>
+				<div>
+					<table class="layui-hide" id="demo" lay-filter="test"></table>
+				</div>
+			</div>
+		</div>
+
+		<script type="text/html" id="barDemo">
+			<a class="layui-btn layui-btn-xs" lay-event="edit">更新</a>
+			<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+		</script>
+		<script>
+			layui.use(['form', 'laydate', 'laypage', 'layer', 'table', 'element'], function() {
+				var form = layui.form,
+					laydate = layui.laydate //日期
+					,
+					laypage = layui.laypage //分页
+					,
+					layer = layui.layer //弹层
+					,
+					table = layui.table //表格
+					,
+					element = layui.element //元素操作
+
+				/* laydate.render({
+            elem: '#test1'
+        });
+        laydate.render({
+            elem: '#test2'
+        });
+*/
+				form.render();
+
+				//执行一个 table 实例
+				table.render({
+					elem: '#demo',
+					id: "demo"
+						//,height: 500
+						,
+					url: 'listCourse.do' //数据接口
+						,
+					title: '讲师表',
+					page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem）
+						layout: ['limit', 'count', 'prev', 'page', 'next', 'skip'] //自定义分页布局
+							//,curr: 5 //设定初始在第 5 页
+							//,groups: 1 //只显示 1 个连续页码
+						,first: false //不显示首页
+						,last: false //不显示尾页
+						,limit: 5
+						,limits: [5, 10, 20]
+
+					} //开启分页
+					,
+					cols: [[ //表头
+							 {field: 'id', title: '序号', width: 80, sort: true}
+							, {field: 'courseTitle', title: '标题', width: 150, sort: true}
+							, {field: 'courseDesc', title: '简介', width: 300, sort: true}
+							, {fixed: 'right', width: 130, align: 'center', toolbar: '#barDemo'}
+					]]
+				});
+
+				//监听行工具事件
+				table.on('tool(test)', function(obj){ //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+					var data = obj.data //获得当前行数据
+							,layEvent = obj.event; //获得 lay-event 对应的值
+					if(layEvent === 'del'){
+						layer.confirm('真的删除【'+ data.title +'】么', function(index){
+							obj.del(); //删除对应行（tr）的DOM结构
+							layer.close(index);
+							//向服务端发送删除指令
+							$.ajax({
+								type:"get",
+								url:"deleteCourse.do?id=" + data.id,
+								dataType:"json",
+								success:function(data){
+									if(data.code == 1){
+										table.reload('demo');
+										layer.msg(data.info)
+									}else{
+										alert(data.data);
+									}
+								}
+							})
+						});
+					} else if(layEvent === 'edit'){
+						//layer.msg('编辑操作');
+						layer.open({
+							type: 2 //此处以iframe举例
+							, title: '修改员工'
+							, area: ['600px', '500px']
+							, content: 'updateCourse.html?id=' + data.id
+						})
+					}
+				});
+
+				var active = {
+					reload: function() {
+						//执行重载
+						table.reload('courseTable', {
+							page: {
+								curr: 1 //重新从第 1 页开始
+							},
+							where: { // 额外需要提交的参数
+								beginTime: $("#test1").val(),
+								endTime: $("#test2").val(),
+							}
+						});
+					}
+				};
+
+				$('.searchDiv .layui-btn').on('click', function(){
+					var type = $(this).data('type');
+					active[type] ? active[type].call(this) : '';
+				});
+			})
+
+		</script>
+		<script type="text/javascript">
+			function add() {
+				layer.open({
+					type: 2,
+					title:'添加课程',
+					area:['600px', '500px'],
+					content: 'addCourse.html'
+				})
+			}
+		</script>
+	</body>
+</html>

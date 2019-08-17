@@ -1,0 +1,5 @@
+<root>
+    <item name='com.github.pagehelper.Page'>
+        <annotation name='java.lang.Deprecated'/>
+    </item>
+</root>
